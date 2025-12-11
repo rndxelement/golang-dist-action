@@ -37,9 +37,15 @@ runs:
     - name: Collect vendor
       shell: bash
       run: |
-        echo "::group::Running go mod vendor"
-        go mod vendor
-        echo "::endgroup::"
+        if [[ -e go.work ]]; then
+          echo "::group::Running go work vendor"
+          go work vendor
+          echo "::endgroup::"
+        else
+          echo "::group::Running go mod vendor"
+          go mod vendor
+          echo "::endgroup::"
+        fi
 
     - name: Create a deps tarball
       shell: bash
