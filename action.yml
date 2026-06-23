@@ -5,6 +5,8 @@ inputs:
   tag:
     description: Tag to create release on
     default: ${{ github.ref_name }}
+  exclude-directories:
+    description: Space separated list of directories that contain a go.mod file to ignore
   vendor-dir:
     description: Top level dir name inside source archive
   dist-filename:
@@ -27,6 +29,16 @@ runs:
         GOMODCACHE: "/tmp/go-mod"
       run: |
         find . -iname 'go.mod' -type f -exec dirname {} \; | while read GOMOD_DIR; do
+          exclude=0
+          for d in ${{ inputs.exclude-directories }}; do
+            if [[ "${GOMOD_DIR#./}" == "${d#./}" ]]; then
+              exclude=1
+              break
+            fi
+          done
+          if [ "$exclude" -ne 0 ]; then
+            continue
+          fi
           echo "::group::Processing ${GOMOD_DIR}/go.mod"
           pushd "${GOMOD_DIR}" >&/dev/null || exit 1
           go mod download -x -modcacherw || exit 1
